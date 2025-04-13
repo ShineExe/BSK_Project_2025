@@ -19,27 +19,30 @@ public class KeysCheck {
 
     public KeysCheck(JFrame frame, GridBagConstraints gbc){
         gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridy = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         JLabel inputLabel = new JLabel("Text to encrypt:");
         inputLabel.setFont(new Font("Verdana", Font.BOLD, 14));
         frame.add(inputLabel, gbc);
 
         gbc.gridx = 1;
-        gbc.gridy = 2;
+        gbc.gridy = 3;
+        gbc.gridwidth = 1;
         JTextField inputField = new JTextField(10);
         frame.add(inputField, gbc);
 
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 4;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridwidth = 1;
         JLabel pinLabel = new JLabel("Enter PIN:");
         pinLabel.setFont(new Font("Verdana", Font.BOLD, 14));
         frame.add(pinLabel, gbc);
 
         gbc.gridx = 1;
-        gbc.gridy = 3;
+        gbc.gridy = 4;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridwidth = 1;
         JPasswordField pinField = new JPasswordField(4);
         frame.add(pinField, gbc);
 
@@ -56,23 +59,22 @@ public class KeysCheck {
         });
 
         gbc.gridx = 2;
-        gbc.gridy = 3;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        JButton encryptButton = new JButton("ENCRYPT");
-        frame.add(encryptButton, gbc);
-
-        gbc.gridx = 0;
         gbc.gridy = 4;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridwidth = 3;
-        JLabel hashLabel = new JLabel("");
-        hashLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
-        frame.add(hashLabel, gbc);
+        JButton encryptButton = new JButton("ENCRYPT TEXT");
+        frame.add(encryptButton, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 5;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridwidth = 3;
+        JLabel messageLabel = new JLabel("");
+        messageLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
+        frame.add(messageLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 5;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
         JLabel encryptedLabel = new JLabel("");
         encryptedLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
         frame.add(encryptedLabel, gbc);
@@ -96,24 +98,35 @@ public class KeysCheck {
         encryptButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                SignatureManager sm = new SignatureManager();
+                KeyManager km = new KeyManager();
+                messageLabel.setText("");
+                encryptedLabel.setText("");
+                decryptedLabel.setText("");
+                resultLabel.setText("");
                 try {
                     publicKey = Files.readAllBytes(Paths.get("keys/public_key.txt"));
                     privateKey = Files.readAllBytes(Paths.get("keys/private_key.txt"));
 
                     String pin = String.valueOf(pinField.getPassword());
-                    byte[] hash = inputField.getText().getBytes(StandardCharsets.UTF_8);
-                    encryptedLabel.setText("Hash: " + new String(hash));
-                    byte[] encrypted = sm.encryptHash(hash, privateKey, pin);
-                    encryptedLabel.setText("Encrypted: " + new String(encrypted).substring(0,10) + "...");
-                    byte[] decryptedHash = sm.decryptHash(encrypted, publicKey);
-                    decryptedLabel.setText("Decrypted: " +  new String(decryptedHash));
+                    byte[] message = inputField.getText().getBytes(StandardCharsets.UTF_8);
+                    messageLabel.setText("Input: " + new String(message));
+                    byte[] decryptedPrivateKey = null;
+                    try {
+                        decryptedPrivateKey = km.decryptPrivateKey(privateKey, pin);
+                    } catch (Exception keyException) {
+                        resultLabel.setText("PrivateKey Decryption Failed, check entered PIN");
+                        return;
+                    }
+                    byte[] encrypted = km.encryptHash(message, decryptedPrivateKey);
+                    encryptedLabel.setText("Encrypted: " + new String(encrypted).substring(0,10) + "... +" + encrypted.length);
+                    byte[] decrypted = km.decryptHash(encrypted, publicKey);
+                    decryptedLabel.setText("Decrypted: " +  new String(decrypted));
 
-                    byte[] comparisonHash = inputField.getText().getBytes(StandardCharsets.UTF_8);
-                    resultLabel.setText("IsHashCorrect: " + Arrays.equals(hash, comparisonHash));
+                    resultLabel.setText("IsDecryptionCorrect: " + Arrays.equals(message, decrypted));
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
+                    resultLabel.setText("Decryption Failed");
                 }
             }
         });

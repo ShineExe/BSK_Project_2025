@@ -6,10 +6,10 @@ import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-public class SignatureManager {
+public class KeyManager {
     private final int ivSize = 16;
 
-    private byte[] decryptPrivateKey(byte[] encryptedKeyWithIv, String pin) throws Exception {
+    public byte[] decryptPrivateKey(byte[] encryptedKeyWithIv, String pin) throws Exception {
         byte[] iv = new byte[ivSize];
         System.arraycopy(encryptedKeyWithIv, 0, iv, 0, iv.length);
         IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
@@ -31,15 +31,14 @@ public class SignatureManager {
         return result;
     }
 
-    private PrivateKey getPrivateKeyFromBytes(byte[] byteKey, String pin) throws Exception {
-        byte[] decryptedKey = decryptPrivateKey(byteKey, pin);
-        PrivateKey result = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(decryptedKey));
+    private PrivateKey getPrivateKeyFromBytes(byte[] byteKey) throws Exception {
+        PrivateKey result = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(byteKey));
         return result;
     }
 
-    public byte[] encryptHash(byte[] hash, byte[] privateKey, String pin) throws Exception {
+    public byte[] encryptHash(byte[] hash, byte[] privateKey) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE, getPrivateKeyFromBytes(privateKey, pin));
+        cipher.init(Cipher.ENCRYPT_MODE, getPrivateKeyFromBytes(privateKey));
         byte[] encryptedHash = cipher.doFinal(hash);
         return encryptedHash;
     }
@@ -51,12 +50,12 @@ public class SignatureManager {
         return decryptedHash;
     }
 
-    public byte[] createInputHash (byte[] input) throws Exception {
+    public byte[] getInputHash (byte[] input) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] inputHash = md.digest(input);
         return inputHash;
     }
 
-    public SignatureManager() {
+    public KeyManager() {
     }
 }

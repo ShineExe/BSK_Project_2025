@@ -1,10 +1,5 @@
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
 
 class Main{
     public static void main(String args[]){
@@ -13,11 +8,11 @@ class Main{
         GridBagLayout layout = new GridBagLayout();
         frame.setLayout(layout);
         GridBagConstraints gbc = new GridBagConstraints();
-        frame.setSize(640,480);
+        frame.setSize(720,480);
 
-        gbc.insets = new Insets(0, 0, 0, 10);
-        gbc.weighty = 0.25;
-        new FileSelectorForm(frame, gbc);
+        gbc.insets = new Insets(0, 10, 0, 0);
+        FileSelectorForm fileForm = new FileSelectorForm(frame, gbc);
+        new FileSigningManager(frame, gbc, fileForm);
         gbc.weighty = 0.1;
         new KeysCheck(frame, gbc);
 

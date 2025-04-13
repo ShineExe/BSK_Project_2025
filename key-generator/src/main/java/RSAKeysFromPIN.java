@@ -67,11 +67,6 @@ public class RSAKeysFromPIN {
         fop.write(publicKey);
         fop.close();
 
-        file = new File("keys/original_key.txt");
-        fop = new FileOutputStream(file);
-        fop.write(privateKey);
-        fop.close();
-
         file = new File("keys/private_key.txt");
         fop = new FileOutputStream(file);
         fop.write(privateKey);

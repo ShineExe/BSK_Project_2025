@@ -7,10 +7,17 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 public class FileSelectorForm {
+    private File file;
+
+    public File getFile() {
+        return file;
+    }
+
     public FileSelectorForm(JFrame frame, GridBagConstraints gbc) {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;
         gbc.gridy = 0;
+        gbc.weighty = 0.25;
         JLabel selectLabel = new JLabel("Send .pdf file to encrypt");
         selectLabel.setFont(new Font("Verdana", Font.BOLD, 14));
         frame.add(selectLabel, gbc);
@@ -38,7 +45,7 @@ public class FileSelectorForm {
                     String fileExtension = fileName.substring(fileName.length()-3);
 
                     if (fileExtension.equals("pdf")) {
-                        File file = new File(fileChooser.getSelectedFile().getAbsolutePath());
+                        file = new File(fileChooser.getSelectedFile().getAbsolutePath());
                         sentFileLabel.setText(fileName);
                     }
                     else { sentFileLabel.setText("Wrong filetype (only .pdf accepted)"); }
