@@ -1,2 +1,3 @@
 rootProject.name = 'BSK_Project_2025'
+include 'key-generator'
 
