@@ -39,29 +39,65 @@ public class PinForm extends JFrame{
         JButton pinButton = new JButton("OK");
         frame.add(pinButton);
 
+        gbc.insets = new Insets(10,0, 0, 0);
         gbc.gridx = 0;
-        gbc.gridy = 1;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.gridy = 2;
         gbc.gridwidth = 3;
-        JLabel sentPinLabel = new JLabel("");
-        sentPinLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
-        frame.add(sentPinLabel, gbc);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        JProgressBar progressBar = new JProgressBar(0, 100);
+        progressBar.setStringPainted(true);
+        progressBar.setVisible(false);
+        frame.add(progressBar, gbc);
+
+        gbc.gridy = 3;
+        JLabel genFeedbackLabel = new JLabel("");
+        genFeedbackLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
+        genFeedbackLabel.setHorizontalAlignment(JLabel.CENTER);
+        frame.add(genFeedbackLabel, gbc);
 
         pinButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String sentPin = String.valueOf(pinField.getPassword());
-                if (sentPin.length() >= 4) {
-                    sentPinLabel.setText(sentPin);
-                    System.out.println("PIN:" + sentPin);
-                    try {
-                        RSAKeysFromPIN genKeys = new RSAKeysFromPIN(sentPin);
-                        sentPinLabel.setText(genKeys.getFeedbackMessage());
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
+                if (sentPin.length() < 4) {
+                    genFeedbackLabel.setText("PIN too short (min. 4 digits)");
+                    return;
                 }
-                else sentPinLabel.setText("PIN too short (min. 4 digits)");
+                else {
+                    pinButton.setEnabled(false);
+                    genFeedbackLabel.setText("Generating keys...");
+                    progressBar.setValue(0);
+                    progressBar.setVisible(true);
+                    System.out.println("PIN: " + sentPin);
+
+                    SwingWorker<String, Void> worker = new SwingWorker<>() {
+                        @Override
+                        protected String doInBackground() throws Exception {
+                            RSAKeysFromPIN genKeys = new RSAKeysFromPIN(sentPin, this::setProgress);
+                            return genKeys.getFeedbackMessage();
+                        }
+
+                        @Override
+                        protected void done() {
+                            try {
+                                String result = get();
+                                genFeedbackLabel.setText(result);
+                                pinButton.setEnabled(true);
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                                genFeedbackLabel.setText("Key generation failed");
+                            }
+                            pinField.setText("");
+                        }
+                    };
+                    worker.addPropertyChangeListener(evt -> {
+                        if ("progress".equals(evt.getPropertyName())) {
+                            int progress = (int) evt.getNewValue();
+                            progressBar.setValue(progress);
+                        }
+                    });
+                    worker.execute();
+                }
             }
         });
     }

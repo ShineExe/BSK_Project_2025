@@ -1,9 +1,16 @@
 import javax.swing.*;
 import java.awt.*;
+import com.formdev.flatlaf.FlatDarculaLaf;
 
 public class KeyGeneratorMain {
 
     public static void main(String args[]) throws Exception {
+        try {
+            UIManager.setLookAndFeel(new FlatDarculaLaf());
+        } catch (Exception ex) {
+            System.err.println("Failed to initialize LaF");
+        }
+
         JFrame frame = new JFrame("RSA Key Generator");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout layout = new GridBagLayout();

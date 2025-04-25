@@ -5,14 +5,22 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class RSAKeysFromPIN {
     private final int rsaKeySize = 4096;
     private final int ivSize = 16;
     private String feedbackMessage = "";
+    private final Consumer<Integer> progressReporter;
 
     public String getFeedbackMessage() {
         return feedbackMessage;
+    }
+
+    private void reportProgress(int percent) {
+        if (progressReporter != null) {
+            progressReporter.accept(percent);
+        }
     }
 
     private static KeyPair generateRsaKeyPair(int rsaKeySize) throws NoSuchAlgorithmException {
@@ -73,16 +81,26 @@ public class RSAKeysFromPIN {
         fop.close();
     }
 
-    public RSAKeysFromPIN(String userPIN) throws Exception {
+    public RSAKeysFromPIN(String userPIN, Consumer<Integer> progressReporter) throws Exception {
+        this.progressReporter = progressReporter;
+
+        reportProgress(10);
         KeyPair keyPair = generateRsaKeyPair(rsaKeySize);
+        reportProgress(20);
         byte[] publicKey = keyPair.getPublic().getEncoded();
+        reportProgress(30);
         byte[] privateKey = keyPair.getPrivate().getEncoded();
+        reportProgress(40);
 
         byte[] aesKey = getPinHashSha256(userPIN);
+        reportProgress(50);
         byte[] encodedPrivateKey = encryptPrivateKey(privateKey, aesKey);
+        reportProgress(70);
 
         byte[] decodedPrivateKey = decryptPrivateKey(encodedPrivateKey, userPIN);
+        reportProgress(90);
         if (Arrays.equals(privateKey, decodedPrivateKey)) {
+            reportProgress(100);
             feedbackMessage = "Keys generated and encrypted successfully";
             saveKeys(publicKey, privateKey, encodedPrivateKey);
         }
