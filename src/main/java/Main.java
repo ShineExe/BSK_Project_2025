@@ -20,8 +20,8 @@ class Main{
         gbc.insets = new Insets(0, 10, 0, 0);
         FileSelectorForm fileForm = new FileSelectorForm(frame, gbc);
         new FileSigningManager(frame, gbc, fileForm);
-        gbc.weighty = 0.1;
-        new KeysCheck(frame, gbc);
+        // gbc.weighty = 0.1;
+        //new KeysCheck(frame, gbc); // a component for testing encryption/decryption on plain text
 
         frame.setVisible(true);
     }
