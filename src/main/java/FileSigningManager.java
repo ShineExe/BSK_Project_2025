@@ -11,6 +11,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,26 +23,38 @@ public class FileSigningManager {
     private byte[] publicKey;
     private byte[] privateKey;
     private File inputFile;
-    private boolean keysCorrect;
+    private boolean keysCorrect = false;
 
-    private void loadKeys(JLabel statusLabel) {
-        keysCorrect = true;
-        statusLabel.setText(statusLabel.getText() + "PublicKey:loaded");
+    private void loadPublicKey(JLabel statusLabel) {
+        statusLabel.setText("PublicKey:loaded");
         try {
             publicKey = Files.readAllBytes(Paths.get("keys/public_key.txt"));
         } catch (NullPointerException | IOException fileException) {
-            statusLabel.setText("Public key not found!");
-            keysCorrect = false;
+            statusLabel.setText("PublicKey:missing!");
         }
+        return;
+    }
 
-        try {
-            privateKey = Files.readAllBytes(Paths.get("keys/private_key.txt"));
-        } catch (NullPointerException | IOException fileException) {
-            statusLabel.setText(statusLabel.getText() + ", Private key not found!");
-            keysCorrect = false;
-            return;
-        }
-        statusLabel.setText(statusLabel.getText() + ", PrivateKey:loaded");
+    private void loadPrivateKey(JLabel statusLabel) {
+        Set<String> knownDrives = new HashSet<>();
+        String prevStatus = statusLabel.getText();
+
+        // check for key in drives every 5 seconds
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(() -> {
+            if (privateKey==null) {
+                keysCorrect = false;
+                statusLabel.setText(prevStatus + ", PrivateKey:missing!");
+                ExternalDriveSearcher eds = new ExternalDriveSearcher(knownDrives);
+                privateKey = eds.getKeyFromDrive();
+            }
+            else {
+                if (!keysCorrect && publicKey!=null) {
+                    statusLabel.setText(prevStatus + ", PrivateKey:loaded");
+                    keysCorrect = true;
+                }
+            }
+        }, 0, 5, TimeUnit.SECONDS);
     }
 
     public FileSigningManager(JFrame frame, GridBagConstraints gbc, FileSelectorForm fileForm) {
@@ -50,8 +67,8 @@ public class FileSigningManager {
         statusLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
         frame.add(statusLabel, gbc);
 
-        loadKeys(statusLabel);
-        String keyStatus = statusLabel.getText();
+        loadPublicKey(statusLabel);
+        loadPrivateKey(statusLabel);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -97,6 +114,7 @@ public class FileSigningManager {
             @Override
             public void actionPerformed(ActionEvent e) {
                 KeyManager km = new KeyManager();
+                String keyStatus = statusLabel.getText();
                 if (!keysCorrect) resultLabel.setText("Key not found!");
                 else try {
                     inputFile = fileForm.getFile();
