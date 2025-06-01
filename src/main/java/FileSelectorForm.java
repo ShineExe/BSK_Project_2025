@@ -6,13 +6,24 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+/**
+ * \brief Class responsible for choosing the .pdf file
+ * \details Creates and manages the file selection form part of the UI.
+ */
 public class FileSelectorForm {
     private File file;
 
+    /**
+     * \brief Method returns the previously selected file.
+     */
     public File getFile() {
         return file;
     }
 
+    /**
+     * \brief FileSelectorForm class initialization, layout and main actions setup.
+     * \details Creates the part of UI responsible for selecting a .pdf file and handles the user interactions.
+     */
     public FileSelectorForm(JFrame frame, GridBagConstraints gbc) {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridx = 0;

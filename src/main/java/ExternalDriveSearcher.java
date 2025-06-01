@@ -3,6 +3,11 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Set;
 
+/**
+ * \brief Class responsible for searching the drives for a stored private key
+ * \details The class compares list of previously detected drives with the currently available ones.
+ * If a new external drive is found, method tries to locate and save the private key file.
+ */
 public class ExternalDriveSearcher {
     private byte[] foundKey = null;
     private String keyName = "private_key.txt";

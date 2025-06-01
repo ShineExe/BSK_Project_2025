@@ -9,8 +9,15 @@ import java.awt.event.ActionListener;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * \brief Class responsible for key-generator UI management
+ * \details Creates and manages the PIN entering form and handles user's actions to generate an RSA key pair.
+ */
 public class PinForm extends JFrame{
-
+    /**
+     * \brief PinForm class initialization, layout and main actions setup.
+     * \details Creates the part of UI responsible for creating a new PIN and keys.
+     */
     public PinForm(JFrame frame, GridBagConstraints gbc){
         gbc.gridx = 0;
         gbc.gridy = 0;

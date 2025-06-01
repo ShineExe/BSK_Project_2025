@@ -13,6 +13,9 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * \brief Class used for encryption/decryption tests.
+ */
 public class KeysCheck {
     private byte[] publicKey;
     private byte[] privateKey;

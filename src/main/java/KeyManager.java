@@ -6,9 +6,18 @@ import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+/**
+ * \brief Class responsible for main encryption functions.
+ * \details The class manages the loaded keys, decrypts them from their stored form,
+ * and manages the needed hashes for the RSA algorithms.
+ */
 public class KeyManager {
     private final int ivSize = 16;
 
+
+    /**
+     * \brief Method decrypts the private key with the provided PIN.
+     */
     public byte[] decryptPrivateKey(byte[] encryptedKeyWithIv, String pin) throws Exception {
         byte[] iv = new byte[ivSize];
         System.arraycopy(encryptedKeyWithIv, 0, iv, 0, iv.length);
@@ -26,16 +35,25 @@ public class KeyManager {
         return cipherDecrypt.doFinal(encryptedKey);
     }
 
+    /**
+     * \brief Method creates and returns the RSA public key from provided bytes.
+     */
     private PublicKey getPublicKeyFromBytes(byte[] byteKey) throws Exception {
         PublicKey result = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(byteKey));
         return result;
     }
 
+    /**
+     * \brief Method creates and returns the RSA private key from provided bytes.
+     */
     private PrivateKey getPrivateKeyFromBytes(byte[] byteKey) throws Exception {
         PrivateKey result = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(byteKey));
         return result;
     }
 
+    /**
+     * \brief Method encrypts the provided bytes, using a private key.
+     */
     public byte[] encryptHash(byte[] hash, byte[] privateKey) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.ENCRYPT_MODE, getPrivateKeyFromBytes(privateKey));
@@ -43,6 +61,9 @@ public class KeyManager {
         return encryptedHash;
     }
 
+    /**
+     * \brief Method decrypts the provided hash bytes, using a public key.
+     */
     public byte[] decryptHash(byte[] hash, byte[] publicKey) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA");
         cipher.init(Cipher.DECRYPT_MODE, getPublicKeyFromBytes(publicKey));
@@ -50,6 +71,9 @@ public class KeyManager {
         return decryptedHash;
     }
 
+    /**
+     * \brief Method creates a hash of if the provided input using the SHA-256 algorithm.
+     */
     public byte[] getInputHash (byte[] input) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] inputHash = md.digest(input);

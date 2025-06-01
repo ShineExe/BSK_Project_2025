@@ -7,33 +7,53 @@ import java.security.*;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
+/**
+ * \brief Class responsible for RSA keys generation.
+ * \details Generates key pair based on the submitted PIN and sends back progress information.
+ */
 public class RSAKeysFromPIN {
     private final int rsaKeySize = 4096;
     private final int ivSize = 16;
     private String feedbackMessage = "";
     private final Consumer<Integer> progressReporter;
 
+    /**
+     * \brief Method returns the final information if the generation process was successful or not.
+     */
     public String getFeedbackMessage() {
         return feedbackMessage;
     }
 
+    /**
+     * \brief Method updates the reported progress of the key generation process.
+     */
     private void reportProgress(int percent) {
         if (progressReporter != null) {
             progressReporter.accept(percent);
         }
     }
 
+    /**
+     * \brief Method generates an RSA key pair.
+     */
     private static KeyPair generateRsaKeyPair(int rsaKeySize) throws NoSuchAlgorithmException {
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
         keyPairGenerator.initialize(rsaKeySize);
         return keyPairGenerator.genKeyPair();
     }
 
+    /**
+     * \brief Method creates an SHA-256 hash of the submitted PIN.
+     */
     private byte[] getPinHashSha256(String userPIN) throws NoSuchAlgorithmException {
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         return digest.digest(userPIN.getBytes(StandardCharsets.UTF_8));
     }
 
+    /**
+     * \brief Method encrypts the generated private key for safe storage.
+     * \details Using hash obtained from the submitted PIN, method uses AES algorithm to encrypt the key bytes.
+     */
     private byte[] encryptPrivateKey(byte[] privateKey, byte[] aesKey) throws Exception {
         byte[] iv = new byte[ivSize];
         new SecureRandom().nextBytes(iv);
@@ -52,6 +72,11 @@ public class RSAKeysFromPIN {
         return  encryptedKeyWithIV;
     }
 
+    /**
+     * \brief Method decrypts the generated private key using the submitted PIN.
+     * \details Using the AES algorithm, method decrypts the previously encrypted key bytes
+     * to check if the whole process was successful.
+     */
     private byte[] decryptPrivateKey(byte[] encryptedKeyWithIv, String pin) throws Exception {
         // separate key and iv
         byte[] iv = new byte[ivSize];
@@ -69,6 +94,9 @@ public class RSAKeysFromPIN {
         return cipherDecrypt.doFinal(encryptedKey);
     }
 
+    /**
+     * \brief Method saves the created keys as text files in 'keys' folder.
+     */
     private void saveKeys(byte[] publicKey, byte[] notHashed, byte[]privateKey) throws IOException {
         File file = new File("keys/public_key.txt");
         FileOutputStream fop = new FileOutputStream(file);
@@ -81,6 +109,10 @@ public class RSAKeysFromPIN {
         fop.close();
     }
 
+    /**
+     * \brief Class initialization. Creates the key pair with submitted PIN.
+     * \details Reports the progress of keys generation and encryption of the private key using the AES algorithm.
+     */
     public RSAKeysFromPIN(String userPIN, Consumer<Integer> progressReporter) throws Exception {
         this.progressReporter = progressReporter;
 

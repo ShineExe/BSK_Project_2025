@@ -19,12 +19,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * \brief Class responsible for the main app functionality and layout
+ * \details The class manages loading the needed file and keys and handles the user interface,
+ * allowing to sign and check the signature for the chosen document.
+ */
 public class FileSigningManager {
     private byte[] publicKey;
     private byte[] privateKey;
     private File inputFile;
     private boolean keysCorrect = false;
 
+    /**
+     * \brief Method responsible for loading the public key from memory
+     * \details The method checks the 'keys' folder for the file created by the key-generator component.
+     * The set status informs of the action result.
+     */
     private void loadPublicKey(JLabel statusLabel) {
         statusLabel.setText("PublicKey:loaded");
         try {
@@ -32,9 +42,14 @@ public class FileSigningManager {
         } catch (NullPointerException | IOException fileException) {
             statusLabel.setText("PublicKey:missing!");
         }
-        return;
     }
 
+    /**
+     * \brief Method responsible for loading the private key from an external drive
+     * \details The method checks every 5 seconds if private key was found.
+     * If not, it checks through ExternalDriveSearcher if any new drives are present,
+     * and calls the method to get the keys from them.
+     */
     private void loadPrivateKey(JLabel statusLabel) {
         Set<String> knownDrives = new HashSet<>();
         String prevStatus = statusLabel.getText();
@@ -57,6 +72,11 @@ public class FileSigningManager {
         }, 0, 5, TimeUnit.SECONDS);
     }
 
+    /**
+     * \brief FileSigningManager class initialization, layout and main actions setup.
+     * \details Creates main app gui, handles the user actions to sign the file
+     * that has been chosen through FileSelectorForm.
+     */
     public FileSigningManager(JFrame frame, GridBagConstraints gbc, FileSelectorForm fileForm) {
         gbc.gridx = 0;
         gbc.gridy = 1;

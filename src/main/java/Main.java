@@ -2,6 +2,10 @@ import javax.swing.*;
 import java.awt.*;
 import com.formdev.flatlaf.FlatDarculaLaf;
 
+/**
+ * \brief Main class for the file signing app.
+ * \details Initializes the main app window and creates its needed components.
+ */
 class Main{
     public static void main(String args[]){
         try {

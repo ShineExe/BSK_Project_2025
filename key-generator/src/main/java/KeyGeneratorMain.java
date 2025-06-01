@@ -2,6 +2,10 @@ import javax.swing.*;
 import java.awt.*;
 import com.formdev.flatlaf.FlatDarculaLaf;
 
+/**
+ * \brief Main class for the key-generator component.
+ * \details Initializes the main app window and creates its needed components.
+ */
 public class KeyGeneratorMain {
 
     public static void main(String args[]) throws Exception {
