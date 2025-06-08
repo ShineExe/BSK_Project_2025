@@ -1,8 +1,13 @@
 import javax.swing.*;
 import java.awt.*;
 import com.formdev.flatlaf.FlatDarculaLaf;
+/**
+ * \defgroup KeyGen KeyGenerator
+ * \brief Module responsible for RSA key generation
+ */
 
 /**
+ * \ingroup KeyGen
  * \brief Main class for the key-generator component.
  * \details Initializes the main app window and creates its needed components.
  */

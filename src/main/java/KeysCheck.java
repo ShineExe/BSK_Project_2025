@@ -14,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * \ingroup MainApp
  * \brief Class used for encryption/decryption tests.
  */
 public class KeysCheck {

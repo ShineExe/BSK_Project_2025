@@ -10,6 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * \ingroup KeyGen
  * \brief Class responsible for key-generator UI management
  * \details Creates and manages the PIN entering form and handles user's actions to generate an RSA key pair.
  */

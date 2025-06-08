@@ -1,3 +1,6 @@
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.interactive.digitalsignature.PDSignature;
+
 import javax.swing.*;
 import javax.swing.text.AbstractDocument;
 import javax.swing.text.AttributeSet;
@@ -7,10 +10,10 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
+import java.io.FileOutputStream;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -20,6 +23,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
+ * \ingroup MainApp
  * \brief Class responsible for the main app functionality and layout
  * \details The class manages loading the needed file and keys and handles the user interface,
  * allowing to sign and check the signature for the chosen document.
@@ -27,21 +31,16 @@ import java.util.regex.Pattern;
 public class FileSigningManager {
     private byte[] publicKey;
     private byte[] privateKey;
+    private byte[] documentHash = null;
     private File inputFile;
     private boolean keysCorrect = false;
 
+
     /**
-     * \brief Method responsible for loading the public key from memory
-     * \details The method checks the 'keys' folder for the file created by the key-generator component.
-     * The set status informs of the action result.
+     * \brief Method returns hash from the document signed by the user
      */
-    private void loadPublicKey(JLabel statusLabel) {
-        statusLabel.setText("PublicKey:loaded");
-        try {
-            publicKey = Files.readAllBytes(Paths.get("keys/public_key.txt"));
-        } catch (NullPointerException | IOException fileException) {
-            statusLabel.setText("PublicKey:missing!");
-        }
+    public byte[] getSignedDocumentHash() {
+        return documentHash;
     }
 
     /**
@@ -73,11 +72,25 @@ public class FileSigningManager {
     }
 
     /**
+     * \brief Method returns a PDSignature with current date
+     */
+    private PDSignature createSignature(){
+        PDSignature signature = new PDSignature();
+        signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
+        signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
+        signature.setName("UserA_180019");
+        signature.setSignDate(Calendar.getInstance());
+        return signature;
+    }
+
+    /**
      * \brief FileSigningManager class initialization, layout and main actions setup.
      * \details Creates main app gui, handles the user actions to sign the file
      * that has been chosen through FileSelectorForm.
      */
     public FileSigningManager(JFrame frame, GridBagConstraints gbc, FileSelectorForm fileForm) {
+
+        KeyManager km = new KeyManager();
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -87,7 +100,7 @@ public class FileSigningManager {
         statusLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
         frame.add(statusLabel, gbc);
 
-        loadPublicKey(statusLabel);
+        publicKey = km.loadPublicKey(statusLabel);
         loadPrivateKey(statusLabel);
 
         gbc.gridx = 0;
@@ -130,24 +143,27 @@ public class FileSigningManager {
         resultLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
         frame.add(resultLabel, gbc);
 
+        // the sign button was clicked
         signButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                KeyManager km = new KeyManager();
                 String keyStatus = statusLabel.getText();
-                if (!keysCorrect) resultLabel.setText("Key not found!");
-                else try {
+
+                if (!keysCorrect)
+                {
+                    resultLabel.setText("Key not found!");
+                    return;
+                }
+
+                try {
                     inputFile = fileForm.getFile();
-                    byte[] hash = null;
-                    try {
-                        hash = km.getInputHash(Files.readAllBytes(inputFile.toPath()));
-                    } catch (NullPointerException fileException) {
+                    if (inputFile == null) {
                         resultLabel.setText("No file attached!");
                         return;
                     }
 
                     String pin = String.valueOf(pinField.getPassword());
-                    byte[] decryptedPrivateKey = null;
+                    byte[] decryptedPrivateKey;
                     try {
                         decryptedPrivateKey = km.decryptPrivateKey(privateKey, pin);
                     } catch (Exception keyException) {
@@ -157,14 +173,26 @@ public class FileSigningManager {
                     }
                     statusLabel.setText(keyStatus + ", PrivateKey Decryption: successful");
 
-                    byte[] encrypted = km.encryptHash(hash, decryptedPrivateKey);
-                    byte[] decrypted = km.decryptHash(encrypted, publicKey);
+                    // Load keys for CMS
+                    PrivateKey privateKeyObj = km.getPrivateKeyFromBytes(decryptedPrivateKey);
+                    PublicKey publicKeyObj = km.getPublicKeyFromBytes(publicKey);
 
-                    resultLabel.setText("IsHashCorrect: " + Arrays.equals(hash, decrypted));
+                    // Load PDF
+                    File signedOutput = new File("signed_" + inputFile.getName());
+                    PDDocument document = PDDocument.load(inputFile);
+                    PDSignature signature = createSignature();
+                    DocumentSigner docSigner = new DocumentSigner(document, signature, privateKeyObj, publicKeyObj);
+                    document = docSigner.signDocument();
+
+                    try (FileOutputStream fos = new FileOutputStream(signedOutput)) {
+                        document.saveIncremental(fos);
+                    }
+                    resultLabel.setText("Signed successfully: " + signedOutput.getName());
+
 
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    resultLabel.setText(ex.getMessage());
+                    resultLabel.setText("Signing error: " + ex.getMessage());
                 }
             }
         });

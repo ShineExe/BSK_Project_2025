@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.io.File;
 
 /**
+ * \ingroup MainApp
  * \brief Class responsible for choosing the .pdf file
  * \details Creates and manages the file selection form part of the UI.
  */

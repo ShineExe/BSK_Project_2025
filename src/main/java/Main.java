@@ -2,7 +2,12 @@ import javax.swing.*;
 import java.awt.*;
 import com.formdev.flatlaf.FlatDarculaLaf;
 
+/** \defgroup MainApp Main application
+ * \brief Responsible for .pdf file signing
+ */
+
 /**
+ * \ingroup MainApp
  * \brief Main class for the file signing app.
  * \details Initializes the main app window and creates its needed components.
  */
@@ -24,6 +29,7 @@ class Main{
         gbc.insets = new Insets(0, 10, 0, 0);
         FileSelectorForm fileForm = new FileSelectorForm(frame, gbc);
         new FileSigningManager(frame, gbc, fileForm);
+        new VerificationManager(frame, gbc, fileForm);
         // gbc.weighty = 0.1;
         //new KeysCheck(frame, gbc); // a component for testing encryption/decryption on plain text
 

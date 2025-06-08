@@ -1,12 +1,22 @@
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.swing.*;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
+ * \ingroup MainApp
  * \brief Class responsible for main encryption functions.
  * \details The class manages the loaded keys, decrypts them from their stored form,
  * and manages the needed hashes for the RSA algorithms.
@@ -14,6 +24,21 @@ import java.security.spec.X509EncodedKeySpec;
 public class KeyManager {
     private final int ivSize = 16;
 
+    /**
+     * \brief Method responsible for loading the public key from memory
+     * \details The method checks the 'keys' folder for the file created by the key-generator component.
+     * The set status informs of the action result.
+     */
+    public byte[] loadPublicKey(JLabel statusLabel) {
+        byte[] publicKey = null;
+        statusLabel.setText("PublicKey:loaded");
+        try {
+            publicKey = Files.readAllBytes(Paths.get("keys/public_key.txt"));
+        } catch (NullPointerException | IOException fileException) {
+            statusLabel.setText("PublicKey:missing!");
+        }
+        return publicKey;
+    }
 
     /**
      * \brief Method decrypts the private key with the provided PIN.
@@ -38,7 +63,7 @@ public class KeyManager {
     /**
      * \brief Method creates and returns the RSA public key from provided bytes.
      */
-    private PublicKey getPublicKeyFromBytes(byte[] byteKey) throws Exception {
+    public PublicKey getPublicKeyFromBytes(byte[] byteKey) throws Exception {
         PublicKey result = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(byteKey));
         return result;
     }
@@ -46,7 +71,7 @@ public class KeyManager {
     /**
      * \brief Method creates and returns the RSA private key from provided bytes.
      */
-    private PrivateKey getPrivateKeyFromBytes(byte[] byteKey) throws Exception {
+    public PrivateKey getPrivateKeyFromBytes(byte[] byteKey) throws Exception {
         PrivateKey result = KeyFactory.getInstance("RSA").generatePrivate(new PKCS8EncodedKeySpec(byteKey));
         return result;
     }
@@ -74,7 +99,7 @@ public class KeyManager {
     /**
      * \brief Method creates a hash of if the provided input using the SHA-256 algorithm.
      */
-    public byte[] getInputHash (byte[] input) throws Exception {
+    public byte[] getDocumentHash(byte[] input) throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         byte[] inputHash = md.digest(input);
         return inputHash;

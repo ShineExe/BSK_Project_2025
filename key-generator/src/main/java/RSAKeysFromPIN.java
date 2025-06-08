@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.function.Consumer;
 
 /**
+ * \ingroup KeyGen
  * \brief Class responsible for RSA keys generation.
  * \details Generates key pair based on the submitted PIN and sends back progress information.
  */
