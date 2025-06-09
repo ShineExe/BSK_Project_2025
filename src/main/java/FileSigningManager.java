@@ -31,17 +31,13 @@ import java.util.regex.Pattern;
 public class FileSigningManager {
     private byte[] publicKey;
     private byte[] privateKey;
-    private byte[] documentHash = null;
     private File inputFile;
     private boolean keysCorrect = false;
+    private JLabel statusLabel;
+    private JLabel resultLabel;
+    private JPasswordField pinField;
+    private KeyManager km;
 
-
-    /**
-     * \brief Method returns hash from the document signed by the user
-     */
-    public byte[] getSignedDocumentHash() {
-        return documentHash;
-    }
 
     /**
      * \brief Method responsible for loading the private key from an external drive
@@ -72,31 +68,18 @@ public class FileSigningManager {
     }
 
     /**
-     * \brief Method returns a PDSignature with current date
-     */
-    private PDSignature createSignature(){
-        PDSignature signature = new PDSignature();
-        signature.setFilter(PDSignature.FILTER_ADOBE_PPKLITE);
-        signature.setSubFilter(PDSignature.SUBFILTER_ADBE_PKCS7_DETACHED);
-        signature.setName("UserA_180019");
-        signature.setSignDate(Calendar.getInstance());
-        return signature;
-    }
-
-    /**
      * \brief FileSigningManager class initialization, layout and main actions setup.
      * \details Creates main app gui, handles the user actions to sign the file
      * that has been chosen through FileSelectorForm.
      */
-    public FileSigningManager(JFrame frame, GridBagConstraints gbc, FileSelectorForm fileForm) {
-
-        KeyManager km = new KeyManager();
+    public FileSigningManager(JFrame frame, GridBagConstraints gbc, FileSelectorForm fileForm, boolean mode) {
+        km = new KeyManager();
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.gridwidth = 4;
         gbc.weighty = 0.1;
-        JLabel statusLabel = new JLabel("");
+        statusLabel = new JLabel("");
         statusLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
         frame.add(statusLabel, gbc);
 
@@ -115,9 +98,10 @@ public class FileSigningManager {
         gbc.gridy = 2;
         gbc.gridwidth = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        JPasswordField pinField = new JPasswordField(4);
+        pinField = new JPasswordField(4);
         frame.add(pinField, gbc);
 
+        // ensuring that the PIN field takes only number values
         ((AbstractDocument)pinField.getDocument()).setDocumentFilter(new DocumentFilter(){
             Pattern regEx = Pattern.compile("\\d*");
             @Override
@@ -136,10 +120,16 @@ public class FileSigningManager {
         JButton signButton = new JButton("SIGN");
         frame.add(signButton, gbc);
 
-        gbc.gridx = 3;
-        gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        JLabel resultLabel = new JLabel("");
+        JLabel decryptionLabel = new JLabel("");
+        decryptionLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
+        frame.add(decryptionLabel, gbc);
+
+        gbc.gridy = 4;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        resultLabel = new JLabel("");
         resultLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
         frame.add(resultLabel, gbc);
 
@@ -162,28 +152,28 @@ public class FileSigningManager {
                         return;
                     }
 
+                    // decrypting the recovered private key using PIN
                     String pin = String.valueOf(pinField.getPassword());
                     byte[] decryptedPrivateKey;
                     try {
                         decryptedPrivateKey = km.decryptPrivateKey(privateKey, pin);
                     } catch (Exception keyException) {
                         resultLabel.setText("Incorrect PIN!");
-                        statusLabel.setText(keyStatus + ", PrivateKey Decryption: failed");
+                        decryptionLabel.setText("PrivateKey Decryption: failed");
                         return;
                     }
-                    statusLabel.setText(keyStatus + ", PrivateKey Decryption: successful");
+                    decryptionLabel.setText("PrivateKey Decryption: successful");
 
-                    // Load keys for CMS
                     PrivateKey privateKeyObj = km.getPrivateKeyFromBytes(decryptedPrivateKey);
                     PublicKey publicKeyObj = km.getPublicKeyFromBytes(publicKey);
 
-                    // Load PDF
+                    // creating signed PDF
                     File signedOutput = new File("signed_" + inputFile.getName());
                     PDDocument document = PDDocument.load(inputFile);
-                    PDSignature signature = createSignature();
-                    DocumentSigner docSigner = new DocumentSigner(document, signature, privateKeyObj, publicKeyObj);
+                    DocumentSigner docSigner = new DocumentSigner(document, decryptedPrivateKey, publicKeyObj, privateKeyObj, mode);
                     document = docSigner.signDocument();
 
+                    // saving the signed file
                     try (FileOutputStream fos = new FileOutputStream(signedOutput)) {
                         document.saveIncremental(fos);
                     }

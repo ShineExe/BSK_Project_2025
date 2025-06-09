@@ -9,11 +9,6 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * \ingroup MainApp
@@ -22,6 +17,7 @@ import java.util.concurrent.TimeUnit;
  * and manages the needed hashes for the RSA algorithms.
  */
 public class KeyManager {
+    /** Initial vector size for encrypted private key */
     private final int ivSize = 16;
 
     /**

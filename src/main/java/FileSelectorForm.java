@@ -30,7 +30,7 @@ public class FileSelectorForm {
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weighty = 0.25;
-        JLabel selectLabel = new JLabel("Send .pdf file to encrypt");
+        JLabel selectLabel = new JLabel("Select .pdf file to encrypt or verify");
         selectLabel.setFont(new Font("Verdana", Font.BOLD, 14));
         frame.add(selectLabel, gbc);
 
@@ -45,6 +45,7 @@ public class FileSelectorForm {
         sentFileLabel.setFont(new Font("Verdana", Font.PLAIN, 10));
         frame.add(sentFileLabel, gbc);
 
+        // button was clicked - handling file selection
         selectButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

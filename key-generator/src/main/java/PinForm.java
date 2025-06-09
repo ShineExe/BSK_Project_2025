@@ -31,6 +31,7 @@ public class PinForm extends JFrame{
         JPasswordField pinField = new JPasswordField(4);
         frame.add(pinField, gbc);
 
+        // ensuring that the PIN field takes only number values
         ((AbstractDocument)pinField.getDocument()).setDocumentFilter(new DocumentFilter(){
             Pattern regEx = Pattern.compile("\\d*");
             @Override
@@ -63,6 +64,7 @@ public class PinForm extends JFrame{
         genFeedbackLabel.setHorizontalAlignment(JLabel.CENTER);
         frame.add(genFeedbackLabel, gbc);
 
+        // button submitting the entered pin was clicked
         pinButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

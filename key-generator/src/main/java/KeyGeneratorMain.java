@@ -14,12 +14,14 @@ import com.formdev.flatlaf.FlatDarculaLaf;
 public class KeyGeneratorMain {
 
     public static void main(String args[]) throws Exception {
+        // initializing UI Look and Feel
         try {
             UIManager.setLookAndFeel(new FlatDarculaLaf());
         } catch (Exception ex) {
             System.err.println("Failed to initialize LaF");
         }
 
+        // initializing main app window
         JFrame frame = new JFrame("RSA Key Generator");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         GridBagLayout layout = new GridBagLayout();
